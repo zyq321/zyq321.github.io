@@ -161,6 +161,7 @@ class GeohashCalculator {
     constructor() {
         this.initializeElements();
         this.bindEvents();
+        this.restoreState(); // 添加状态恢复
     }
 
     initializeElements() {
@@ -176,10 +177,39 @@ class GeohashCalculator {
         document.querySelector('.geohash-calculator').appendChild(this.neighborsDiv);
     }
 
-    bindEvents() {
-        this.calculateBtn.addEventListener('click', () => this.handleCalculate());
-        // 移除 copyBtn 事件绑定
+    saveState() {
+        const state = {
+            latitude: this.latitudeInput.value,
+            longitude: this.longitudeInput.value,
+            precision: this.precisionSelect.value,
+            geohash: this.geohashResult.value
+        };
+        localStorage.setItem('geohashState', JSON.stringify(state));
     }
+
+    restoreState() {
+        const state = localStorage.getItem('geohashState');
+        if (state) {
+            const { latitude, longitude, precision, geohash } = JSON.parse(state);
+            this.latitudeInput.value = latitude || '';
+            this.longitudeInput.value = longitude || '';
+            this.precisionSelect.value = precision || '8';
+            this.geohashResult.value = geohash || '';
+            if (geohash) {
+                const neighbors = GeohashUtil.getNeighbors(geohash);
+                this.displayNeighbors(geohash, neighbors);
+                this.neighborsDiv.style.display = 'block';
+            }
+        }
+    }
+
+    bindEvents() {
+        this.calculateBtn.addEventListener('click', () => {
+            this.handleCalculate();
+            this.saveState(); // 添加状态保存
+        });
+    }
+    // 移除 copyBtn 事件绑定
 
     validateCoordinates(lat, lon) {
         if (isNaN(lat) || isNaN(lon)) {

@@ -31,6 +31,25 @@ function updateTimestamp() {
     }
 }
 
+function saveState() {
+    const state = {
+        timestamp: timestampInput.value,
+        date: dateInput.value,
+        timezone: timezoneSelect.value
+    };
+    localStorage.setItem('timeConverterState', JSON.stringify(state));
+}
+
+function restoreState() {
+    const state = localStorage.getItem('timeConverterState');
+    if (state) {
+        const { timestamp, date, timezone } = JSON.parse(state);
+        timestampInput.value = timestamp || '';
+        dateInput.value = date || '';
+        timezoneSelect.value = timezone || 'Asia/Shanghai';
+    }
+}
+
 timestampInput.addEventListener('input', function() {
     if (this.value === '') {
         dateInput.value = '';
@@ -57,3 +76,12 @@ currentTimeBtn.addEventListener('click', function() {
     timestampInput.value = timestamp;
     updateDateTime();
 });
+
+// 在页面加载时恢复状态
+document.addEventListener('DOMContentLoaded', restoreState);
+
+// 在值改变时保存状态
+timestampInput.addEventListener('input', saveState);
+dateInput.addEventListener('input', saveState);
+timezoneSelect.addEventListener('change', saveState);
+currentTimeBtn.addEventListener('click', saveState);
