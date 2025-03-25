@@ -10,6 +10,9 @@ class IPChecker {
         this.subnetInput = document.getElementById('subnet');
         this.checkBtn = document.getElementById('checkBtn');
         this.checkResult = document.getElementById('checkResult');
+        this.binaryIpAddress = document.getElementById('binaryIpAddress');
+        this.convertBtn = document.getElementById('convertBtn');
+        this.binaryResult = document.getElementById('binaryResult');
     }
 
     bindEvents() {
@@ -17,6 +20,7 @@ class IPChecker {
             this.handleCheck();
             this.saveState();
         });
+        this.convertBtn.addEventListener('click', () => this.handleBinaryConversion());
     }
 
     saveState() {
@@ -107,6 +111,70 @@ class IPChecker {
         } else {
             this.checkResult.innerHTML = `<span class="error">IP地址 ${ip} 不在网段 ${cidr} 内</span>`;
         }
+    }
+
+    handleBinaryConversion() {
+        const ip = this.binaryIpAddress.value.trim();
+        if (!this.validateIPAddress(ip)) {
+            this.binaryResult.innerHTML = '<span class="error">请输入有效的IP地址</span>';
+            return;
+        }
+
+        if (ip.includes(':')) {
+            // IPv6
+            const parts = ip.split(':');
+            const expandedParts = this.expandIPv6(parts);
+            const binaryParts = expandedParts.map(part => {
+                const bin = parseInt(part, 16).toString(2).padStart(16, '0');
+                return `<div class="binary-section">${part} → ${bin}</div>`;
+            });
+            
+            // 计算完整的二进制表示
+            const fullBinary = expandedParts.map(part => 
+                parseInt(part, 16).toString(2).padStart(16, '0')
+            ).join('');
+            
+            this.binaryResult.innerHTML = `
+                <div>IPv6 二进制表示：</div>
+                ${binaryParts.join('')}
+                <div class="binary-section full-binary">
+                    <div>完整二进制：</div>
+                    ${fullBinary}
+                </div>`;
+        } else {
+            // IPv4
+            const parts = ip.split('.');
+            const binaryParts = parts.map(part => {
+                const bin = parseInt(part).toString(2).padStart(8, '0');
+                return `<div class="binary-section">${part} → ${bin}</div>`;
+            });
+            
+            // 计算完整的二进制表示
+            const fullBinary = parts.map(part => 
+                parseInt(part).toString(2).padStart(8, '0')
+            ).join('');
+            
+            this.binaryResult.innerHTML = `
+                <div>IPv4 二进制表示：</div>
+                ${binaryParts.join('')}
+                <div class="binary-section full-binary">
+                    <div>完整二进制：</div>
+                    ${fullBinary}
+                </div>`;
+        }
+    }
+
+    expandIPv6(parts) {
+        // 处理IPv6地址的压缩表示
+        const expanded = [];
+        let doubleColonIndex = parts.indexOf('');
+        
+        if (doubleColonIndex !== -1) {
+            let zerosCount = 8 - (parts.length - 1);
+            parts.splice(doubleColonIndex, 1, ...Array(zerosCount).fill('0'));
+        }
+
+        return parts.map(part => part || '0').map(part => part.padStart(4, '0'));
     }
 }
 
