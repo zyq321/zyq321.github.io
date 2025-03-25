@@ -237,3 +237,11 @@ p {
     font-weight: bold;
     margin-bottom: 5px;
 }
+
+.visit-count {
+    text-align: right;
+    padding: 10px 20px;
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
