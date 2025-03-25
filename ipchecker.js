@@ -37,60 +37,49 @@ class IPChecker {
     }
 
     validateIPAddress(ip) {
-        const ipPattern = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
-        const match = ip.match(ipPattern);
-        
-        if (!match) return false;
-        
-        // 验证每个部分是否在0-255范围内
-        for (let i = 1; i <= 4; i++) {
-            const octet = parseInt(match[i]);
-            if (octet < 0 || octet > 255) return false;
-        }
-        
-        return true;
+        // 支持 IPv4 和 IPv6 的正则表达式
+        const ipv4Pattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+        const ipv6Pattern = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/;
+        return ipv4Pattern.test(ip) || ipv6Pattern.test(ip);
     }
 
     validateCIDR(cidr) {
-        const cidrPattern = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})\/(\d{1,2})$/;
-        const match = cidr.match(cidrPattern);
-        
-        if (!match) return false;
-        
-        // 验证IP部分
-        for (let i = 1; i <= 4; i++) {
-            const octet = parseInt(match[i]);
-            if (octet < 0 || octet > 255) return false;
-        }
-        
-        // 验证掩码部分
-        const prefix = parseInt(match[5]);
-        if (prefix < 0 || prefix > 32) return false;
-        
-        return true;
+        // 支持 IPv4 和 IPv6 的 CIDR 正则表达式
+        const ipv4CidrPattern = /^(\d{1,3}\.){3}\d{1,3}\/(\d{1,2})$/;
+        const ipv6CidrPattern = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\/(\d{1,3})$/;
+        return ipv4CidrPattern.test(cidr) || ipv6CidrPattern.test(cidr);
     }
 
     ipToLong(ip) {
-        const parts = ip.split('.');
-        let result = 0;
-        
-        for (let i = 0; i < 4; i++) {
-            result = result * 256 + parseInt(parts[i]);
+        if (ip.includes(':')) {
+            // IPv6 地址转换为长整数
+            const parts = ip.split(':');
+            let result = BigInt(0);
+            for (let i = 0; i < parts.length; i++) {
+                result = (result << BigInt(16)) + BigInt(parseInt(parts[i], 16));
+            }
+            return result;
+        } else {
+            // IPv4 地址转换为长整数
+            const parts = ip.split('.');
+            let result = 0;
+            for (let i = 0; i < 4; i++) {
+                result = result * 256 + parseInt(parts[i]);
+            }
+            return result >>> 0;
         }
-        
-        return result >>> 0; // 无符号右移，确保结果为无符号32位整数
     }
 
     isInSubnet(ip, cidr) {
         const [subnetIP, prefixStr] = cidr.split('/');
         const prefix = parseInt(prefixStr);
-        
+
         const ipLong = this.ipToLong(ip);
         const subnetLong = this.ipToLong(subnetIP);
-        
+
         // 计算掩码
-        const mask = ~((1 << (32 - prefix)) - 1) >>> 0;
-        
+        const mask = ip.includes(':') ? ~(BigInt(1) << BigInt(128 - prefix)) : ~((1 << (32 - prefix)) - 1) >>> 0;
+
         // 检查IP是否在网段内
         return (ipLong & mask) === (subnetLong & mask);
     }
