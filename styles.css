@@ -170,3 +170,30 @@ p {
 .neighbors-row div.current:hover {
     background: #45a049;
 }
+
+
+/* IP检查器样式 */
+.ip-checker {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.success {
+    color: green;
+    font-weight: bold;
+}
+
+.error {
+    color: red;
+    font-weight: bold;
+}
+
+#checkResult {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #f8f8f8;
+    min-height: 20px;
+}
