@@ -11,10 +11,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <a href="converter.html" ${currentPage === 'converter.html' ? 'class="active"' : ''}>进制转换器</a>
         <a href="ipchecker.html" ${currentPage === 'ipchecker.html' ? 'class="active"' : ''}>IP网段检查器</a>
     </nav>
-    <div class="visit-count">
-        <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-        <span id="busuanzi_container_site_uv">本站总访问人数<span id="busuanzi_value_site_uv"></span>次</span>
-    </div>
     `;
     
     // 查找页面中的导航栏占位元素
