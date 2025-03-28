@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工具集</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .navbar {
+            margin-bottom: 0;
+            border-radius: 0;
+        }
+        .content-frame {
+            flex: 1;
+            border: none;
+            width: 100%;
+            height: calc(100vh - 50px);
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#" data-page="index_original.html" class="active">时间转换器</a>
+        <a href="#" data-page="calculator.html">GeoHash计算器</a>
+        <a href="#" data-page="converter.html">进制转换器</a>
+        <a href="#" data-page="ipchecker.html">IP网段检查器</a>
+    </nav>
+    
+    <iframe id="contentFrame" class="content-frame" src="index_original.html"></iframe>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.navbar a');
+            const contentFrame = document.getElementById('contentFrame');
+            
+            // 设置默认页面
+            const defaultPage = 'index_original.html';
+            contentFrame.src = defaultPage;
+            
+            // 为导航链接添加点击事件
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // 移除所有active类
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    
+                    // 为当前点击的链接添加active类
+                    this.classList.add('active');
+                    
+                    // 加载对应的页面
+                    const page = this.getAttribute('data-page');
+                    contentFrame.src = page;
+                });
+            });
+            
+            // 从URL参数中获取页面
+            const urlParams = new URLSearchParams(window.location.search);
+            const pageParam = urlParams.get('page');
+            
+            if (pageParam) {
+                // 加载指定的页面
+                contentFrame.src = pageParam;
+                
+                // 更新导航栏active状态
+                navLinks.forEach(link => {
+                    if (link.getAttribute('data-page') === pageParam) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

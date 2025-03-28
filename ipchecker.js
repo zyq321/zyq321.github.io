@@ -10,7 +10,7 @@ class IPChecker {
         this.subnetInput = document.getElementById('subnet');
         this.checkBtn = document.getElementById('checkBtn');
         this.checkResult = document.getElementById('checkResult');
-        this.binaryIpAddress = document.getElementById('binaryIpAddress');
+        this.binaryIpAddress = document.getElementById('ipBinaryAddress');
         this.convertBtn = document.getElementById('convertBtn');
         this.binaryResult = document.getElementById('binaryResult');
     }

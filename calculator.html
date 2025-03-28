@@ -9,7 +9,6 @@
 </head>
 
 <body>
-	<div id="nav-placeholder"></div>
 	<div class="container">
 		<h1>GeoHash 计算器</h1>
 		<div class="geohash-calculator">
@@ -24,23 +23,23 @@
 			<div class="input-group">
 				<label for="precision">精度:</label>
 				<select id="precision">
-					<option value="5">5位 (±2.4km)</option>
+					<option value="5" selected>5位 (±2.4km)</option>
 					<option value="6">6位 (±610m)</option>
 					<option value="7">7位 (±76m)</option>
-					<option value="8" selected>8位 (±19m)</option>
+					<option value="8">8位 (±19m)</option>
 					<option value="9">9位 (±2.4m)</option>
-					<option value="10">10位 (±60cm)</option>
+					<option value="10">10位 (±0.6m)</option>
+					<option value="11">11位 (±0.07m)</option>
+					<option value="12">12位 (±0.02m)</option>
 				</select>
 			</div>
-			<button id="calculateBtn">计算 GeoHash</button>
+			<button id="calculateBtn">计算</button>
 			<div class="result">
-				<label>GeoHash:</label>
-				<input type="text" id="geohashResult" readonly>
+				<div id="geohashResult"></div>
+				<div id="decodedResult"></div>
 			</div>
 		</div>
 	</div>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/latlon-geohash/2.0.0/latlon-geohash.min.js"></script>
-	<script src="nav.js"></script>
 	<script src="calculator.js"></script>
 </body>
 
