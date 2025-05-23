@@ -22,13 +22,38 @@ function updateDateTime() {
 }
 
 function updateTimestamp() {
-    const date = new Date(dateInput.value);
-    if (!isNaN(date.getTime())) {
-        const timezone = timezoneSelect.value;
-        const utcDate = new Date(date.toLocaleString('en-US', { timeZone: timezone}));
-        const timestamp = Math.floor(utcDate.getTime() / 1000);
-        timestampInput.value = timestamp;
+    const dateStr = dateInput.value;
+    const timezone = timezoneSelect.value;
+    
+    // 解析日期字符串，格式为：YYYY-MM-DD HH:mm:ss
+    const [datePart, timePart] = dateStr.split(' ');
+    if (!datePart || !timePart) return;
+    
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hour, minute, second] = timePart.split(':').map(Number);
+    
+    // 创建Date对象，注意月份需要减1
+    const date = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+    
+    // 获取时区偏移量（分钟）
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: timezone,
+        year: 'numeric',
+        timeZoneName: 'longOffset'
+    });
+    const timeZoneOffset = formatter.format(date).match(/GMT([+-])(\d+):(\d+)/);
+    
+    let offsetMinutes = 0;
+    if (timeZoneOffset) {
+        const sign = timeZoneOffset[1] === '+' ? 1 : -1;
+        const hours = parseInt(timeZoneOffset[2]);
+        const minutes = parseInt(timeZoneOffset[3]);
+        offsetMinutes = sign * (hours * 60 + minutes);
     }
+    
+    // 调整时间（减去时区偏移，因为我们要转换为UTC时间）
+    const timestamp = Math.floor(date.getTime() / 1000) - offsetMinutes * 60;
+    timestampInput.value = timestamp;
 }
 
 function saveState() {
