@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>时间周期计算器</title>
+	<link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+	<div class="container">
+		<h1>时间周期计算器</h1>
+		<div class="scheduler">
+			<div class="input-group">
+				<label for="startTime">起始时间:</label>
+				<input type="time" id="startTime" value="00:00">
+			</div>
+			
+			<div class="input-group">
+				<label for="intervalType">周期类型:</label>
+				<select id="intervalType">
+					<option value="minutes">分钟</option>
+					<option value="hours">小时</option>
+				</select>
+			</div>
+			
+			<div class="input-group">
+				<label for="intervalValue">周期间隔:</label>
+				<input type="number" id="intervalValue" min="1" value="30" placeholder="输入周期间隔">
+				<small id="intervalHint">例如: 每30分钟</small>
+			</div>
+			
+			<div class="input-group">
+				<label for="endTime">结束时间:</label>
+				<input type="time" id="endTime" value="23:59">
+			</div>
+			
+			<button id="generateBtn">生成时间点</button>
+			
+			<div class="result-section">
+				<div class="result-header">
+					<h3>运行时间点 <span id="countInfo"></span></h3>
+					<button id="copyAllBtn" style="display: none;">复制全部</button>
+				</div>
+				<div id="timePoints"></div>
+			</div>
+		</div>
+	</div>
+	
+	<script src="scheduler.js"></script>
+</body>
+
+</html>

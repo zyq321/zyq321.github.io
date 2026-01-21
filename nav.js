@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <a href="calculator.html" ${currentPage === 'calculator.html' ? 'class="active"' : ''}>GeoHash计算器</a>
         <a href="converter.html" ${currentPage === 'converter.html' ? 'class="active"' : ''}>进制转换器</a>
         <a href="ipchecker.html" ${currentPage === 'ipchecker.html' ? 'class="active"' : ''}>IP网段检查器</a>
+        <a href="scheduler.html" ${currentPage === 'scheduler.html' ? 'class="active"' : ''}>时间周期计算器</a>
     </nav>
     `;
     
