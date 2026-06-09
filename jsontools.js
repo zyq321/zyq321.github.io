@@ -1,7 +1,32 @@
-// JSON 管道工具 —— 反转义 / 解压 / 压缩 / 转义 任意组合
+// JSON 工具 —— 压缩/解压 + 转义/反转义 两个独立选择框
 
 // ====== 核心操作函数 ======
-// 每个函数签名: (input: string) => { success: boolean, result: string, error: string }
+
+function compressJSON(input) {
+    try {
+        const parsed = JSON.parse(input);
+        return { success: true, result: JSON.stringify(parsed) };
+    } catch (e) {
+        return { success: false, result: '', error: 'JSON 解析失败：' + e.message };
+    }
+}
+
+function decompressJSON(input) {
+    try {
+        const parsed = JSON.parse(input);
+        return { success: true, result: JSON.stringify(parsed, null, 2) };
+    } catch (e) {
+        return { success: false, result: '', error: 'JSON 解析失败：' + e.message };
+    }
+}
+
+function escapeJSON(input) {
+    try {
+        return { success: true, result: JSON.stringify(input).slice(1, -1) };
+    } catch (e) {
+        return { success: false, result: '', error: '转义失败：' + e.message };
+    }
+}
 
 function unescapeJSON(input) {
     // 1) 把输入当作转义字符串包在引号里解析
@@ -16,41 +41,15 @@ function unescapeJSON(input) {
     return { success: false, result: '', error: '反转义失败：输入不是有效的转义字符串' };
 }
 
-function decompressJSON(input) {
-    try {
-        const parsed = JSON.parse(input);
-        return { success: true, result: JSON.stringify(parsed, null, 2) };
-    } catch (e) {
-        return { success: false, result: '', error: 'JSON 解析失败：' + e.message };
-    }
-}
+// 操作映射
+var ops = {
+    compress:   { fn: compressJSON,   label: '压缩' },
+    decompress: { fn: decompressJSON, label: '解压（格式化）' },
+    escape:     { fn: escapeJSON,     label: '转义' },
+    unescape:   { fn: unescapeJSON,   label: '反转义' },
+};
 
-function compressJSON(input) {
-    try {
-        const parsed = JSON.parse(input);
-        return { success: true, result: JSON.stringify(parsed) };
-    } catch (e) {
-        return { success: false, result: '', error: 'JSON 解析失败：' + e.message };
-    }
-}
-
-function escapeJSON(input) {
-    try {
-        return { success: true, result: JSON.stringify(input).slice(1, -1) };
-    } catch (e) {
-        return { success: false, result: '', error: '转义失败：' + e.message };
-    }
-}
-
-// 操作顺序（与管道 UI 顺序一致：反转义 → 解压 → 压缩 → 转义）
-var steps = [
-    { key: 'unescape',   fn: unescapeJSON,   label: '反转义' },
-    { key: 'decompress', fn: decompressJSON, label: '解压' },
-    { key: 'compress',   fn: compressJSON,   label: '压缩' },
-    { key: 'escape',     fn: escapeJSON,     label: '转义' },
-];
-
-// ====== UI 交互 ======
+// ====== DOM 元素 ======
 var jsonInput   = document.getElementById('jsonInput');
 var jsonOutput  = document.getElementById('jsonOutput');
 var errorMsg    = document.getElementById('errorMsg');
@@ -58,46 +57,24 @@ var outputMsg   = document.getElementById('outputMsg');
 var copyBtn     = document.getElementById('copyBtn');
 var executeBtn  = document.getElementById('executeBtn');
 var clearBtn    = document.getElementById('clearBtn');
-var toggles     = document.querySelectorAll('.pipe-toggle');
+var compressSel = document.getElementById('compressSelect');
+var escapeSel   = document.getElementById('escapeSelect');
 
-// 切换开关样式
-toggles.forEach(function (btn) {
-    btn.addEventListener('click', function () {
-        this.classList.toggle('on');
-        this.classList.toggle('off');
-        updateArrows();
-    });
-});
-
-function updateArrows() {
-    var active = [];
-    toggles.forEach(function (t) { active.push(t.classList.contains('on')); });
-    var arrows = [document.getElementById('arrow1'), document.getElementById('arrow2'), document.getElementById('arrow3')];
-    arrows.forEach(function (a) { a.classList.remove('active'); });
-    for (var i = 0; i < arrows.length; i++) {
-        if (active[i] && active[i + 1]) arrows[i].classList.add('active');
-    }
-}
-
-function getActiveSteps() {
-    var active = [];
-    toggles.forEach(function (t) {
-        if (t.classList.contains('on')) active.push(t.dataset.step);
-    });
-    return active;
-}
-
-// 执行管道
+// ====== 执行 ======
 executeBtn.addEventListener('click', function () {
     var input = jsonInput.value;
     if (!input.trim()) {
         errorMsg.textContent = '请先输入内容';
+        outputMsg.textContent = '';
         return;
     }
 
-    var pipe = getActiveSteps();
-    if (pipe.length === 0) {
+    var compressVal = compressSel.value;
+    var escapeVal   = escapeSel.value;
+
+    if (compressVal === 'none' && escapeVal === 'none') {
         errorMsg.textContent = '请至少选择一个操作';
+        outputMsg.textContent = '';
         return;
     }
 
@@ -105,54 +82,66 @@ executeBtn.addEventListener('click', function () {
     outputMsg.textContent = '';
 
     var current = input;
-    for (var i = 0; i < pipe.length; i++) {
-        var key = pipe[i];
-        var step = null;
-        for (var j = 0; j < steps.length; j++) {
-            if (steps[j].key === key) { step = steps[j]; break; }
-        }
-        if (!step) continue;
-        var res = step.fn(current);
+    var appliedLabels = [];
+
+    // 按顺序执行：先压缩/解压，再转义/反转义
+    var steps = [compressVal, escapeVal];
+    for (var i = 0; i < steps.length; i++) {
+        var key = steps[i];
+        if (key === 'none') continue;
+        var op = ops[key];
+        if (!op) continue;
+        var res = op.fn(current);
         if (!res.success) {
-            errorMsg.textContent = '步骤 ' + (i + 1) + '（' + step.label + '）出错：' + res.error;
+            errorMsg.textContent = '「' + op.label + '」出错：' + res.error;
             jsonOutput.value = '';
             copyBtn.style.display = 'none';
             return;
         }
         current = res.result;
+        appliedLabels.push(op.label);
     }
 
     jsonOutput.value = current;
-    outputMsg.textContent = '执行成功（' + pipe.map(function (k) {
-        for (var s = 0; s < steps.length; s++) { if (steps[s].key === k) return steps[s].label; }
-        return k;
-    }).join(' → ') + '）';
+    outputMsg.textContent = '执行成功（' + appliedLabels.join(' → ') + '）';
     copyBtn.style.display = 'inline-block';
 });
 
-// 复制结果
+// ====== 复制结果 ======
 copyBtn.addEventListener('click', function () {
     if (!jsonOutput.value) return;
     copyToClipboard(jsonOutput.value);
     outputMsg.textContent = '已复制到剪贴板';
 });
 
-// 清空
+// ====== 清空 ======
 clearBtn.addEventListener('click', function () {
     jsonInput.value = '';
     jsonOutput.value = '';
     errorMsg.textContent = '';
     outputMsg.textContent = '';
     copyBtn.style.display = 'none';
+    compressSel.value = 'none';
+    escapeSel.value = 'none';
 });
 
-// 输入时清除提示
+// ====== 输入时清除提示 ======
 jsonInput.addEventListener('input', function () {
     errorMsg.textContent = '';
     outputMsg.textContent = '';
 });
 
-// 剪贴板工具
+// ====== 选择框改变时清除提示 ======
+compressSel.addEventListener('change', function () {
+    errorMsg.textContent = '';
+    outputMsg.textContent = '';
+});
+escapeSel.addEventListener('change', function () {
+    errorMsg.textContent = '';
+    outputMsg.textContent = '';
+});
+
+// ====== 剪贴板工具 ======
 function copyToClipboard(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).catch(function () { fallbackCopy(text); });
@@ -173,6 +162,3 @@ function fallbackCopy(text) {
     try { document.execCommand('copy'); } catch (_) {}
     document.body.removeChild(ta);
 }
-
-// 初始化箭头状态
-updateArrows();
